@@ -48,5 +48,5 @@ def load_rag_content_from_text(text_file_path, chunk_size=1000, chunk_overlap=20
         retriever = vectorstore.as_retriever(search_kwargs={"k": 5})
         return retriever
     except Exception as e:
-        st.error(f"Error processing file {text_file_path}: {str(e)}")
+        print(f"Error processing file {text_file_path}: {str(e)}")
         return None
