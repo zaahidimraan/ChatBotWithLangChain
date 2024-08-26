@@ -12,8 +12,6 @@ from langchain.storage import InMemoryStore
 from langchain_core.documents import Document
 import utils 
 
-# Load environment variables
-load_dotenv()
 
 # Initialize Streamlit app
 st.title("JnS Education")
@@ -29,7 +27,7 @@ if uploaded_file is not None:
     
     if retriever:
         # Initialize the LLM
-        llm = GoogleGenerativeAI(model="gemini-1.5-flash", temperature=0.7)
+        llm = GoogleGenerativeAI(model="gemini-1.5-flash", temperature=0.7, google_api_key=utils.get_api_key("GOOGLE_API_KEY"))
 
         # Template for the prompt
         template = """Use the following pieces of context to answer the question at the end. 

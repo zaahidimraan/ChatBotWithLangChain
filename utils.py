@@ -14,6 +14,12 @@ from langchain_core.documents import Document
 # Load environment variables
 load_dotenv()
 
+# Function to get API key from Streamlit secrets or environment variable
+def get_api_key(key_name):
+    if key_name not in os.environ:
+        return st.secrets.get(key_name)
+    else:
+        return os.getenv(key_name)
 # Function to read file with fallback encoding
 def read_file_with_fallback_encoding(file_path):
     encodings = ['utf-8', 'latin-1', 'ascii', 'utf-16', 'cp1252']
@@ -36,7 +42,7 @@ def load_rag_content_from_text(text_file_path, chunk_size=1000, chunk_overlap=20
             length_function=len,
         )
         splits = text_splitter.split_documents([document])
-        embedding_function = GoogleGenerativeAIEmbeddings(model="models/embedding-001", task_type='retrieval_query')
+        embedding_function = GoogleGenerativeAIEmbeddings(model="models/embedding-001", task_type='retrieval_query', google_api_key=get_api_key("GOOGLE_API_KEY"))
         vectorstore = Chroma.from_documents(documents=splits, embedding=embedding_function)
         retriever = vectorstore.as_retriever(search_kwargs={"k": 5})
         return retriever
