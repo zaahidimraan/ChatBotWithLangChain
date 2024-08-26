@@ -18,6 +18,8 @@ load_dotenv()
 # Function to get API key from Streamlit secrets or environment variable
 def get_api_key(key_name):
     if key_name not in os.environ:
+        print(f"Key {key_name} not found in environment variables, checking Streamlit secrets")
+        print(st.secrets.get(key_name))
         return st.secrets.get(key_name)
     else:
         return os.getenv(key_name)
