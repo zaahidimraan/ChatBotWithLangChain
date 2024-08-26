@@ -45,18 +45,16 @@ def load_rag_content_from_text(text_file_path, chunk_size=1000, chunk_overlap=20
         return None
 
 # Initialize Streamlit app
-st.title("RAG-based Chatbot")
+st.title("JnS Education")
 
 # File uploader for the text file
-uploaded_file = st.file_uploader("Choose a text file for RAG", type="txt")
+# uploaded_file = st.file_uploader("Choose a text file for RAG", type="txt")
+uploaded_file = 'rag_string.txt'
 
 if uploaded_file is not None:
-    # Save the uploaded file temporarily
-    with open("temp_rag_file.txt", "wb") as f:
-        f.write(uploaded_file.getbuffer())
     
     # Load the RAG content
-    retriever = load_rag_content_from_text("temp_rag_file.txt")
+    retriever = load_rag_content_from_text(uploaded_file)
     
     if retriever:
         # Initialize the LLM
@@ -87,7 +85,7 @@ if uploaded_file is not None:
             return result['result'], result['source_documents']
 
         # Chat interface
-        st.subheader("Chat with the RAG-based Chatbot")
+        st.subheader("Chat with the RAG-based Chatbot for JnS Visa Consultancy")
         
         # Initialize chat history
         if "messages" not in st.session_state:
@@ -110,19 +108,12 @@ if uploaded_file is not None:
             # Display assistant response in chat message container
             with st.chat_message("assistant"):
                 st.markdown(response)
-                if source_documents:
-                    st.markdown("**Sources:**")
-                    for doc in source_documents:
-                        st.markdown(f"- {doc.metadata['source']}")
             
             # Add assistant response to chat history
             st.session_state.messages.append({"role": "assistant", "content": response})
 
     else:
         st.error("Failed to process the uploaded file. Please try again.")
-
-    # Clean up the temporary file
-    os.remove("temp_rag_file.txt")
 
 else:
     st.info("Please upload a text file to start the chat.")
