@@ -37,6 +37,7 @@ def read_file_with_fallback_encoding(file_path):
 # Function to load RAG content from text
 def load_rag_content_from_text(text_file_path, chunk_size=1000, chunk_overlap=200):
     try:
+        print(f"Processing file {text_file_path}")
         file_content = read_file_with_fallback_encoding(text_file_path)
         document = Document(page_content=file_content, metadata={"source": text_file_path})
         text_splitter = RecursiveCharacterTextSplitter(
