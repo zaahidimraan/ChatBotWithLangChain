@@ -12,49 +12,52 @@ from langchain.storage import InMemoryStore
 from langchain_core.documents import Document
 import utils 
 
-# Initialize Streamlit app
-st.title("JnS Education")
 
 # File uploader for the text file
 # uploaded_file = st.file_uploader("Choose a text file for RAG", type="txt")
 uploaded_file = 'rag_string.txt'
+# Load the RAG content
+retriever = utils.load_rag_content_from_text(uploaded_file)
+# Template for the prompt
+template = """Use the following pieces of context to answer the question at the end. 
+If you don't know the answer, just say that you don't know, don't try to make up an answer.
 
-if uploaded_file is not None:
-    
-    # Load the RAG content
-    retriever = utils.load_rag_content_from_text(uploaded_file)
-    
-    if retriever:
-        # Initialize the LLM
-        print("API key loaded from .env")
-        llm = GoogleGenerativeAI(model="gemini-1.5-flash", temperature=0.7, google_api_key=utils.get_api_key("GOOGLE_API_KEY"))
+{context}
 
-        # Template for the prompt
-        template = """Use the following pieces of context to answer the question at the end. 
-        If you don't know the answer, just say that you don't know, don't try to make up an answer.
+Question: {question}
+Answer:"""
+# Initialize the LLM
+print("API key loaded from .env")
+llm = GoogleGenerativeAI(model="gemini-1.5-flash", temperature=0.7, google_api_key=utils.get_api_key("GOOGLE_API_KEY"))
+prompt_template = PromptTemplate(input_variables=["context", "question"], template=template)
 
-        {context}
+# Chain to combine the retriever and the LLM
+qa_chain = RetrievalQA.from_chain_type(
+    llm=llm, 
+    chain_type="stuff", 
+    retriever=retriever, 
+    return_source_documents=True,
+    chain_type_kwargs={"prompt": prompt_template}
+)
 
-        Question: {question}
-        Answer:"""
-        prompt_template = PromptTemplate(input_variables=["context", "question"], template=template)
+# Function to get chatbot response
+def get_chatbot_response(query):
+    result = qa_chain({"query": query})
+    return result['result'], result['source_documents']
 
-        # Chain to combine the retriever and the LLM
-        qa_chain = RetrievalQA.from_chain_type(
-            llm=llm, 
-            chain_type="stuff", 
-            retriever=retriever, 
-            return_source_documents=True,
-            chain_type_kwargs={"prompt": prompt_template}
-        )
+response, source_documents = get_chatbot_response("Tell me only the Website Name with out any description")
 
-        # Function to get chatbot response
-        def get_chatbot_response(query):
-            result = qa_chain({"query": query})
-            return result['result'], result['source_documents']
 
+if retriever:
+    template 
+    # Initialize Streamlit app
+    st.title(response)
+
+
+    if uploaded_file is not None:
+        response, source_documents = get_chatbot_response(f"Give only the brief description of the website {response}")
         # Chat interface
-        st.subheader("Chat with the RAG-based Chatbot for JnS Visa Consultancy")
+        st.subheader(response)
         
         # Initialize chat history
         if "messages" not in st.session_state:
@@ -81,8 +84,8 @@ if uploaded_file is not None:
             # Add assistant response to chat history
             st.session_state.messages.append({"role": "assistant", "content": response})
 
-    else:
-        st.error("Failed to process the uploaded file. Please try again.")
 
+    else:
+        st.info("Please upload a text file to start the chat.")
 else:
-    st.info("Please upload a text file to start the chat.")
+    st.error("Failed to process the uploaded file. Please try again.")
