@@ -12,6 +12,18 @@ from langchain.storage import InMemoryStore
 from langchain_core.documents import Document
 import utils 
 
+# Write streamlit section to upload the txt file and store it as rag_string.txt
+# Upload the text file
+st.title("RAG Chatbot")
+st.write("Upload a text file with the RAG content to start the chat.")
+uploaded_file = st.file_uploader("Choose a text file for RAG", type="txt")
+if uploaded_file is not None:
+    with open('rag_string.txt', 'wb') as f:
+        f.write(uploaded_file.getvalue())
+        st.write("File uploaded successfully.")
+        
+# Remove the streamlit display
+st.empty()
 
 # File uploader for the text file
 # uploaded_file = st.file_uploader("Choose a text file for RAG", type="txt")
@@ -49,7 +61,6 @@ response, source_documents = get_chatbot_response("Tell me only the Website Name
 
 
 if retriever:
-    template 
     # Initialize Streamlit app
     st.title(response)
 
