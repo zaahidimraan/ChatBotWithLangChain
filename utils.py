@@ -17,12 +17,23 @@ load_dotenv()
 
 # Function to get API key from Streamlit secrets or environment variable
 def get_api_key(key_name):
-    if key_name not in os.environ:
-        print(f"Key {key_name} not found in environment variables, checking Streamlit secrets")
-        print(st.secrets.get(key_name))
-        return st.secrets.get(key_name)
+    # Try to load from .env
+    api_key_from_env = os.getenv('GOOGLE_API_KEY')
+    API_KEY=None
+
+    # Check if .env provided a valid key
+    if api_key_from_env:
+        API_KEY = api_key_from_env
+        print("API key loaded from .env")
     else:
-        return os.getenv(key_name)
+        # Fall back to Streamlit secrets
+        if st.secrets is not None and "API_KEY" in st.secrets:
+            API_KEY = st.secrets["API_KEY"]
+            print("API key loaded from Streamlit secrets")
+        else:
+            API_KEY = None  # Or raise an error, depending on your needs
+            print("Error: API key not found in .env or Streamlit secrets")
+    return API_KEY
 # Function to read file with fallback encoding
 def read_file_with_fallback_encoding(file_path):
     encodings = ['utf-8', 'latin-1', 'ascii', 'utf-16', 'cp1252']

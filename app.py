@@ -12,7 +12,6 @@ from langchain.storage import InMemoryStore
 from langchain_core.documents import Document
 import utils 
 
-
 # Initialize Streamlit app
 st.title("JnS Education")
 
