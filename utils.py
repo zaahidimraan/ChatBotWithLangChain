@@ -28,7 +28,7 @@ def get_api_key(key_name):
     else:
         # Fall back to Streamlit secrets
         if st.secrets is not None and "API_KEY" in st.secrets:
-            API_KEY = st.secrets["API_KEY"]
+            API_KEY = st.secrets["GOOGLE_API_KEY"]
             print("API key loaded from Streamlit secrets")
         else:
             API_KEY = None  # Or raise an error, depending on your needs
