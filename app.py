@@ -26,6 +26,7 @@ if uploaded_file is not None:
     
     if retriever:
         # Initialize the LLM
+        print("API key loaded from .env")
         llm = GoogleGenerativeAI(model="gemini-1.5-flash", temperature=0.7, google_api_key=utils.get_api_key("GOOGLE_API_KEY"))
 
         # Template for the prompt
