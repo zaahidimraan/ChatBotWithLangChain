@@ -61,7 +61,7 @@ if retriever:
 
 
     if uploaded_file is not None:
-        response, source_documents = get_chatbot_response(f"Give only the brief description of the website {response} to set as chatbot description.")
+        response, source_documents = get_chatbot_response(f"Give only the brief description of the website Routes Overseas Consultants to set as chatbot description.")
         # Chat interface
         st.subheader(response)
         
