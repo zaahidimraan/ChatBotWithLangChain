@@ -17,8 +17,11 @@ import utils
 uploaded_file = 'rag_string.txt'
 # Load the RAG content
 retriever = utils.load_rag_content_from_text(uploaded_file)
+if not retriever:
+    st.error("Failed to load the RAG content. Please contact on +92 310 6584862.")
+    
 # Template for the prompt
-template = """You are a friendly Education Consultant at Routes Overseas Consultants. Your job is to provide information to students about Routes Overseas Consultants, IELTS and queries about studies in UK, Australia, Canada and New zeeland.
+template = """You are an Education Consultant at Routes Overseas Consultants. Your job is to provide information to students about Routes Overseas Consultants, IELTS and queries about studies in UK, Australia, Canada and New zeeland.
 Guidelines:
 1. Answer the queries using context about Routes Overseas Consultants, IELTS and queries about studies in UK, Australia, Canada and New zeeland.
 2. Primary use context to answer the queries and if the context does not have relevant information to the query, you can use your own knowledge to answer the query but the answer should be relevant and accurate to the Routes Overseas Consultants, IELTS and studies in UK, Australia, Canada and New zeeland.
