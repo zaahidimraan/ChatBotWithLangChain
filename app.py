@@ -1,7 +1,8 @@
 import streamlit as st
 import os
 from dotenv import load_dotenv
-from langchain import PromptTemplate, LLMChain
+from langchain_core.prompts.PromptTemplate import PromptTemplate
+from langchain_core.chains.LLMChain import LLMChain
 from langchain.chains import RetrievalQA
 from langchain_google_genai import GoogleGenerativeAI
 from langchain.document_loaders import TextLoader
