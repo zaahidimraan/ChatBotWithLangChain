@@ -57,8 +57,22 @@ def load_rag_content_from_text(text_file_path, chunk_size=1000, chunk_overlap=20
     except Exception as e:
         st.error(f"Error processing file {text_file_path}: {str(e)}")
         return None
+
+def format_streamlit_history(messages):
+    # Get last 10 messages excluding the current question
+    recent_messages = messages
+    formatted_history = ""
     
-    # Function to get chatbot response
+    for message in recent_messages:
+        role = message["role"]
+        content = message["content"]
+        # Convert 'user' and 'assistant' to 'Human' and 'Assistant' for clarity
+        role_name = "Human" if role == "user" else "Assistant"
+        formatted_history += f"{role_name}: {content}\n"
+    
+    return formatted_history
+    
+# Function to get chatbot response
 def get_chatbot_response(query,qa_chain):
     result = qa_chain.invoke({"query": query})
     return result['result'], result['source_documents']

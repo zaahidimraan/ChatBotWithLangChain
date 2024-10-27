@@ -30,10 +30,8 @@ def initialize_session_state():
 
     Context:
     {context}
-
-    Question: {question}
     """
-    prompt_template = PromptTemplate(input_variables=["context", "question"], template=template)
+    prompt_template = PromptTemplate(input_variables=["context"], template=template)
 
     # Initialize the LLM
     llm = GoogleGenerativeAI(model="gemini-1.5-flash", temperature=0.5, google_api_key=utils.get_api_key("GOOGLE_API_KEY"))
@@ -62,14 +60,14 @@ if "retriever" not in st.session_state:
     if not initialize_session_state():
         st.stop()  # Stop app if initialization failed
         
+# Initialize chat history
+if "messages" not in st.session_state:
+    st.session_state.messages = []
 # Assign Description to website
 response, source_documents = utils.get_chatbot_response(f"Give only the brief description of the website Routes Overseas Consultants to set as chatbot description.",st.session_state.qa_chain)
 # Chat interface
 st.subheader(response)
 
-# Initialize chat history
-if "messages" not in st.session_state:
-    st.session_state.messages = []
 
 # Display chat messages from history on app rerun
 for message in st.session_state.messages:
@@ -80,8 +78,6 @@ for message in st.session_state.messages:
 if prompt := st.chat_input("What is your question?"):
     # Display user message in chat message container
     st.chat_message("user").markdown(prompt)
-    # Add user message to chat history
-    st.session_state.messages.append({"role": "user", "content": prompt})
 
     # Get the response from the qa_chain
     response, source_documents = utils.get_chatbot_response(prompt,st.session_state.qa_chain)
@@ -90,5 +86,7 @@ if prompt := st.chat_input("What is your question?"):
     with st.chat_message("assistant"):
         st.markdown(response)
     
+    # Add user message to chat history
+    st.session_state.messages.append({"role": "user", "content": prompt})
     # Add assistant response to chat history
     st.session_state.messages.append({"role": "assistant", "content": response})
