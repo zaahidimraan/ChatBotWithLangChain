@@ -2,7 +2,7 @@ import os
 import streamlit as st
 from dotenv import load_dotenv
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain_community.vectorstores import Chroma
+from langchain_community.vectorstores import FAISS
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain_core.documents import Document
 
@@ -51,7 +51,7 @@ def load_rag_content_from_text(text_file_path, chunk_size=1000, chunk_overlap=20
         )
         splits = text_splitter.split_documents([document])
         embedding_function = GoogleGenerativeAIEmbeddings(model="models/embedding-001", task_type='retrieval_query', google_api_key=get_api_key("GOOGLE_API_KEY"))
-        vectorstore = Chroma.from_documents(documents=splits, embedding=embedding_function)
+        vectorstore = FAISS.from_documents(documents=splits, embedding=embedding_function)
         retriever = vectorstore.as_retriever(search_kwargs={"k": 5})
         return retriever
     except Exception as e:
