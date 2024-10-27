@@ -73,6 +73,11 @@ def format_streamlit_history(messages):
     return formatted_history
     
 # Function to get chatbot response
-def get_chatbot_response(query,qa_chain):
-    result = qa_chain.invoke({"query": query})
-    return result['result'], result['source_documents']
+def get_chatbot_response(query,qa_chain,messages):
+    result = qa_chain.invoke(
+        {
+            "input": query,
+            "chat_history": messages,
+        }
+    )
+    return result['answer']

@@ -1,8 +1,9 @@
 import streamlit as st
 import os
 from dotenv import load_dotenv
-from langchain_core.prompts import PromptTemplate
-from langchain.chains import RetrievalQA
+from langchain_core.prompts import ChatPromptTemplate
+from langchain.chains import create_history_aware_retriever, create_retrieval_chain
+from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain_google_genai import GoogleGenerativeAI
 import utils
 
@@ -15,43 +16,58 @@ def initialize_session_state():
     if not retriever:
         st.error("Failed to load the RAG content. Please contact on +92 310 6584862.")
         return False
-
-    # Template for the prompt
-    template = """You are an Education Consultant at Routes Overseas Consultants. Your job is to provide information to students about Routes Overseas Consultants, IELTS, PTE and queries about studies in UK, Australia, Canada and New zeeland.
-    Guidelines:
-    1. Answer the queries using context about Routes Overseas Consultants, IELTS, PTE and queries about studies in UK, Australia, Canada and New zeeland.
-    2. Primary use context to answer the queries and if the context does not have relevant information to the query, you can use your own knowledge to answer the query but the answer should be relevant and accurate to the Routes Overseas Consultants, IELTS, PTE and studies in UK, Australia, Canada and New zeeland.
-    3. If you are not sure about the answer, you can ask the student to visit the website of Routes Overseas Consultants[http://www.rosconsultants.com/] for more information or contact them on this number: 0321 7758462.
-    4. If you do not understand the query, you can ask the student to rephrase the query.
-    5. If user ask cost related query without giving any detail, provide on average cost from Pakistan and ask user to provide more details to get personalized answer.
-    6. Do not answer to general questions that is not related to Routes Overseas Consultants, IELTS, PTE or studies in UK, Australia, Canada and New zeeland.  
-    7. If user ask question about other consultants, remind them that you are a consultant at Routes Overseas Consultants and you can only provide information about Routes Overseas Consultants.
-    8. Use emojis sparingly in response to make the conversation more engaging.
-
-    Context:
-    {context}
-    Question:
-    {question}
-    Answer:"""
-    prompt_template = PromptTemplate(input_variables=["context","question"], template=template)
-
+    
     # Initialize the LLM
     llm = GoogleGenerativeAI(model="gemini-1.5-flash", temperature=0.5, google_api_key=utils.get_api_key("GOOGLE_API_KEY"))
-
-    # Chain to combine the retriever and the LLM
-    qa_chain = RetrievalQA.from_chain_type(
-        llm=llm, 
-        chain_type="stuff", 
-        retriever=retriever, 
-        return_source_documents=True,
-        chain_type_kwargs={"prompt": prompt_template}
+    
+    condense_question_system_template = (
+        "Given a chat history and the latest user question "
+        "which might reference context in the chat history, "
+        "formulate a standalone question which can be understood "
+        "without the chat history. Do NOT answer the question, "
+        "just reformulate it if needed and otherwise return it as is."
     )
 
+    condense_question_prompt = ChatPromptTemplate.from_messages(
+        [
+            ("system", condense_question_system_template),
+            ("placeholder", "{chat_history}"),
+            ("human", "{input}"),
+        ]
+    )
+    history_aware_retriever = create_history_aware_retriever(
+        llm, retriever, condense_question_prompt
+    )
+
+    system_prompt = (
+    """You are an Education Consultant at Routes Overseas Consultants. Your job is to provide information to students about Routes Overseas Consultants, IELTS, PTE and queries about studies in UK, Australia, Canada and New zeeland.
+        Guidelines:
+        1. Answer the queries using context about Routes Overseas Consultants, IELTS, PTE and queries about studies in UK, Australia, Canada and New zeeland.
+        2. Primary use context to answer the queries and if the context does not have relevant information to the query, you can use your own knowledge to answer the query but the answer should be relevant and accurate to the Routes Overseas Consultants, IELTS, PTE and studies in UK, Australia, Canada and New zeeland.
+        3. If you are not sure about the answer, you can ask the student to visit the website of Routes Overseas Consultants[http://www.rosconsultants.com/] for more information or contact them on this number: 0321 7758462.
+        4. If you do not understand the query, you can ask the student to rephrase the query.
+        5. If user ask cost related query without giving any detail, provide on average cost from Pakistan and ask user to provide more details to get personalized answer.
+        6. Do not answer to general questions that is not related to Routes Overseas Consultants, IELTS, PTE or studies in UK, Australia, Canada and New zeeland.  
+        7. If user ask question about other consultants, remind them that you are a consultant at Routes Overseas Consultants and you can only provide information about Routes Overseas Consultants.
+        8. Use emojis sparingly in response to make the conversation more engaging.
+        \n\n
+        Context: {context}"""
+    )
+
+    qa_prompt = ChatPromptTemplate.from_messages(
+        [
+            ("system", system_prompt),
+            ("placeholder", "{chat_history}"),
+            ("human", "{input}"),
+        ]
+    )
+
+    qa_chain = create_stuff_documents_chain(llm, qa_prompt)
+
+    convo_qa_chain = create_retrieval_chain(history_aware_retriever, qa_chain)
+
     # Store variables in session state
-    st.session_state.retriever = retriever
-    st.session_state.qa_chain = qa_chain
-    st.session_state.prompt_template = prompt_template
-    st.session_state.llm = llm
+    st.session_state.qa_chain = convo_qa_chain
     return True
 
 # Initialize Streamlit app
@@ -66,7 +82,7 @@ if "retriever" not in st.session_state:
 if "messages" not in st.session_state:
     st.session_state.messages = []
 # Assign Description to website
-response, source_documents = utils.get_chatbot_response(f"Give only the brief description of the website Routes Overseas Consultants to set as chatbot description.",st.session_state.qa_chain)
+response = utils.get_chatbot_response(f"Give only the brief description of Routes Overseas Consultants to set as chatbot description.",st.session_state.qa_chain,st.session_state.messages)
 # Chat interface
 st.subheader(response)
 
@@ -82,7 +98,7 @@ if prompt := st.chat_input("What is your question?"):
     st.chat_message("user").markdown(prompt)
 
     # Get the response from the qa_chain
-    response, source_documents = utils.get_chatbot_response(prompt,st.session_state.qa_chain)
+    response= utils.get_chatbot_response(prompt,st.session_state.qa_chain,st.session_state.messages)
     
     # Display assistant response in chat message container
     with st.chat_message("assistant"):
