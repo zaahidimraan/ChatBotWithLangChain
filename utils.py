@@ -1,15 +1,9 @@
-
 import os
 import streamlit as st
 from dotenv import load_dotenv
-from langchain import PromptTemplate, LLMChain
-from langchain.chains import RetrievalQA
-from langchain_google_genai import GoogleGenerativeAI
-from langchain.document_loaders import TextLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import Chroma
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
-from langchain.storage import InMemoryStore
 from langchain_core.documents import Document
 
 # Load environment variables
@@ -63,3 +57,8 @@ def load_rag_content_from_text(text_file_path, chunk_size=1000, chunk_overlap=20
     except Exception as e:
         st.error(f"Error processing file {text_file_path}: {str(e)}")
         return None
+    
+    # Function to get chatbot response
+def get_chatbot_response(query,qa_chain):
+    result = qa_chain.invoke({"query": query})
+    return result['result'], result['source_documents']
