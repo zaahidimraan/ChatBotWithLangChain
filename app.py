@@ -67,6 +67,7 @@ def initialize_session_state():
     convo_qa_chain = create_retrieval_chain(history_aware_retriever, qa_chain)
 
     # Store variables in session state
+    st.session_state.retriever = retriever
     st.session_state.qa_chain = convo_qa_chain
     return True
 
