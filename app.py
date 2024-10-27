@@ -30,8 +30,10 @@ def initialize_session_state():
 
     Context:
     {context}
-    """
-    prompt_template = PromptTemplate(input_variables=["context"], template=template)
+    Question:
+    {question}
+    Answer:"""
+    prompt_template = PromptTemplate(input_variables=["context","question"], template=template)
 
     # Initialize the LLM
     llm = GoogleGenerativeAI(model="gemini-1.5-flash", temperature=0.5, google_api_key=utils.get_api_key("GOOGLE_API_KEY"))
